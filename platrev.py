@@ -50,3 +50,79 @@ if menu == "Lessons":
 elif menu == "Quiz":
     for q in quiz_data:
         st.write(q["question"])
+import streamlit as st
+import json
+import os
+
+st.set_page_config(page_title="Revit Learning Hub", layout="wide")
+
+# -----------------------
+# Load Data
+# -----------------------
+def load_json(filepath, default):
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return default
+
+lessons = load_json("data/lessons.json", {})
+
+# -----------------------
+# UI Header
+# -----------------------
+st.markdown("""
+    <h1 style='text-align: center;'>🏗️ Revit Learning Hub</h1>
+""", unsafe_allow_html=True)
+
+# -----------------------
+# Select Topic
+# -----------------------
+topic = st.selectbox("📚 เลือกหัวข้อ", list(lessons.keys()))
+
+lesson = lessons[topic]
+steps = lesson["steps"]
+
+# -----------------------
+# Session State
+# -----------------------
+if "step" not in st.session_state:
+    st.session_state.step = 0
+
+# -----------------------
+# Progress Bar
+# -----------------------
+progress = (st.session_state.step + 1) / len(steps)
+st.progress(progress)
+
+# -----------------------
+# Show Step
+# -----------------------
+step = steps[st.session_state.step]
+
+st.markdown(f"## {step['title']}")
+st.write(step["content"])
+
+# Highlight shortcut
+if "MV" in step["content"]:
+    st.info("⌨️ Shortcut: MV")
+
+# Image
+if step.get("image"):
+    st.image(step["image"])
+
+# Video
+if step.get("video"):
+    st.video(step["video"])
+
+# -----------------------
+# Navigation Buttons
+# -----------------------
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("⬅️ Previous") and st.session_state.step > 0:
+        st.session_state.step -= 1
+
+with col2:
+    if st.button("Next ➡️") and st.session_state.step < len(steps) - 1:
+        st.session_state.step += 1
